@@ -4,7 +4,41 @@ module UI
     MAX_CANNY_TRACKBAR_NAME = "max canny threshold"
     MIN_HL_VOTES = "min hl votes"
     MIN_LENGTH = "min length line"
+
+    class VisualizerHelper
+
+        def self.draw_lines(imageMat, linedata, color = CvScalar.new(0,0,255))
+            linedata.each { |line| imageMat.line! line[:start_point], line[:end_point], :thickness => 2, :line_type => 8, :color => color }
+            return imageMat
+        end
+
+        def self.find_horizon(linedata)
+            linedata.each do |line|
+                start_point = line[:start_point]
+                end_point = line[:end_point]
+
+                x_distance = (start_point.x - end_point.x).abs
+                y_distance = (start_point.y - end_point.y).abs
+
+                angle = y_distance.to_f != 0 ? Math.atan(x_distance.to_f/y_distance.to_f) * 180 / Math::PI : 0
+
+                if (angle >= 0 && angle <= 2)
+                    return line
+                end
+            end
+        end
+
+        def self.mark_horizon(imageMat, linedata)
+            if (horizon = find_horizon(linedata))
+
+                return draw_lines imageMat, [horizon], CvScalar.new(255,255,0)
+            end
+        end
+
+
+    end
     class ImageModeLines
+        require 'find'
         require 'line_saver'
         include HoughTransform
 
@@ -13,11 +47,61 @@ module UI
         # @args:
         # window_name: name of the displayed opencv window
         # @type OpenCV::CvMat image: image to display
-        def initialize(window_name, image_file_name,mode)
+        def initialize(window_name, image_file_name,mode = :detector_mode)
             @window_name = window_name
-            @image = CvMat::load image_file_name, CV_LOAD_IMAGE_COLOR
-            @image_file_name
             @window = GUI::Window.new(@window_name)
+
+            if(mode == :detector_mode)
+                detector_mode_init image_file_name
+            else
+                restore_mode_init image_file_name
+            end
+        end
+
+        def restore_mode_init(lines_file_name)
+            lines_data = LineSaver.instance.restore_lines(lines_file_name)
+            img_file_name = lines_file_name.slice(/.*\.jpg/)
+
+            complete_image_path = ""
+            Find.find('./') do |path|
+                if path =~ Regexp.new(img_file_name + "$")
+                    complete_image_path = path
+                end
+            end
+
+            @image = CvMat::load complete_image_path, CV_LOAD_IMAGE_COLOR
+            drawn_lines = VisualizerHelper.draw_lines(@image,lines_data)
+            p VisualizerHelper.find_horizon(lines_data)
+            #drawn_lines = image_push_lines(@image, lines_data)
+
+            picture = VisualizerHelper.mark_horizon(@image,lines_data)
+            #if not nil, horizon was found
+            if (picture)
+                @window.show picture
+            else
+                #show without horizon
+                @window.show drawn_lines
+            end
+
+            while key = GUI::wait_key
+                case key.chr
+                when "s"
+                    output_name = File.basename(img_file_name,File.extname(img_file_name)) + "_horizon" + File.extname(img_file_name)
+                    if picture
+                        picture.save(output_name)
+                    else
+                        draw_lines.save(output_name)
+                    end
+                end
+            end
+            #TODO:
+            # read original image(find recursively, since we don't extract the exact path from the file)
+            # paint lines in original image
+            # show image
+        end
+
+        def detector_mode_init(image_file_name)
+            @image = CvMat::load image_file_name, CV_LOAD_IMAGE_COLOR
             @bw_image = @image.BGR2GRAY
            # GUI::wait_key
             #initialize variables
@@ -47,9 +131,9 @@ module UI
             while key = GUI::wait_key
                 case key.chr
                 when "s"
-                    LineSaver.instance.store_lines(File.basename(image_file_name, File.extname(image_file_name)), @lines_array)
+                    LineSaver.instance.store_lines(File.basename(image_file_name), @lines_array)
                 when "o"
-                    @canny_image.save(File.basename(image_file_name, File.extname(image_file_name)) + Time.now.to_s + File.extname(image_file_name))
+                    canny_image.save(File.basename(image_file_name, File.extname(image_file_name)) + Time.now.to_s + File.extname(image_file_name))
                 end
             end
         end
@@ -77,11 +161,20 @@ module UI
             proc { |v|
                 self.hl_votes = v
                 if @hough_mode == CV_HOUGH_STANDARD
-                    canny_edges = hough_transform @hough_mode, 1, CV_PI/180, hl_votes, bw_image.canny(canny_threshold1, canny_threshold2)
+                   # self.canny_image =
+                    #make canny
+                    self.canny_image = bw_image.canny(canny_threshold1,canny_threshold2)
+                    #detect lines with hough transform
+                    hough_transform @hough_mode, 1, CV_PI/180, hl_votes, canny_image
+                    #make colorful
+                    self.canny_image = self.canny_image.GRAY2BGR
+                    #draw lines in image
+                    self.canny_image = VisualizerHelper.draw_lines canny_image, @lines_array
+                    #color_image.line! pt1, pt2, :thickness => 2, :line_type => 8, :color => CvScalar.new(0,0,255)
                 else
-                    canny_edges = hough_transform @hough_mode, 1, CV_PI/180, hl_votes ,min_length ,10, bw_image.canny(canny_threshold1, canny_threshold2)
+                    self.canny_image = hough_transform @hough_mode, 1, CV_PI/180, hl_votes ,min_length ,10, bw_image.canny(canny_threshold1, canny_threshold2)
                 end
-                window.show canny_edges
+                window.show canny_image
  #               LineSaver.instance.store_lines("foo", @lines_array)
             }
         end
@@ -90,8 +183,8 @@ module UI
 
             proc { |v|
                 min_length = v
-                canny_edges = hough_transform CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, hl_votes, min_length, 10, bw_image.canny(canny_threshold1, canny_threshold2)
-                window.show canny_edges
+                self.canny_image = hough_transform CV_HOUGH_PROBABILISTIC, 1, CV_PI/180, hl_votes, min_length, 10, bw_image.canny(canny_threshold1, canny_threshold2)
+                window.show canny_image
             }
         end
 

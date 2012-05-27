@@ -15,8 +15,8 @@ def usage
     print "s: store found lines in file\n"
     print "o: to save image with lines\n"
 
-    print "If lines file loaded"
-    "nothing"
+    print "If lines file loaded:\n"
+    print "s: store image with marked lines and marked horizon if horizon can be found\n"
     exit 0
 end
 if (ARGV.size != 2)
@@ -38,13 +38,14 @@ if File.exists?(ARGV[0])
     #detect file type
     fm = FileMagic.new
     type = fm.file(ARGV[0])
-    if (type.start_with?("JPEG") || type.starts_with?("PNG"))
+    if (type.start_with?("JPEG") || type.start_with?("PNG"))
 #        image = CvMat::load ARGV[0],CV_LOAD_IMAGE_COLOR
 
         #instantiate viewer/save mode
         window = UI::ImageModeLines.new("viewer output", ARGV[0])
     else
         #todo assume text file
+        UI::ImageModeLines.new("viewer output", ARGV[0], :restore_mode)
     end
 else
      print "File or directory not found\n"

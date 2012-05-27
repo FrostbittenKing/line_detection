@@ -1,0 +1,14 @@
+GIT
+  remote: https://github.com/ruby-opencv/ruby-opencv
+  revision: 56b33ca03db12e915f8af1a57b33099108126071
+  specs:
+    opencv (0.0.6.20120501011158)
+
+GEM
+  specs:
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  opencv (= 0.0.6.20120501011158)!

@@ -31,11 +31,12 @@ module HoughTransform
 
                 @lines_array << { :start_point => pt1, :end_point => pt2 }
 
-                color_image.line! pt1, pt2, :thickness => 2, :line_type => 8, :color => CvScalar.new(0,0,255)
+                #color_image.line! pt1, pt2, :thickness => 2, :line_type => 8, :color => CvScalar.new(0,0,255)
              #   print "draw line nr: #{index + 1}\n"
             }
         end
 
-        return color_image
+        return @lines_array
     end
+
 end
