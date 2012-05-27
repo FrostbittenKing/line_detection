@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 $LOAD_PATH.unshift File.dirname(__FILE__)
 
 require "opencv"
@@ -43,9 +45,31 @@ if File.exists?(ARGV[0])
 
         #instantiate viewer/save mode
         window = UI::ImageModeLines.new("viewer output", ARGV[0])
+        while key = GUI::wait_key
+            case key.chr
+            when "s"
+                window.save_image_detection_mode
+            #    LineSaver.instance.store_lines(File.basename(image_file_name), @lines_array)
+            when "o"
+                window.output_canny_image_detection_mode
+            #    canny_image.save(File.basename(image_file_name, File.extname(image_file_name)) + Time.now.to_s + File.extname(image_file_name))
+            end
+        end
     else
         #todo assume text file
-        UI::ImageModeLines.new("viewer output", ARGV[0], :restore_mode)
+        window = UI::ImageModeLines.new("viewer output", ARGV[0], :restore_mode)
+        while key = GUI::wait_key
+            case key.chr
+            when "s"
+                window.save_horizon_image
+             #   output_name = File.basename(img_file_name,File.extname(img_file_name)) + "_horizon" + File.extname(img_file_name)
+             #   if picture
+             #       picture.save(output_name)
+             #   else
+             #       draw_lines.save(output_name)
+             #   end
+            end
+        end
     end
 else
      print "File or directory not found\n"

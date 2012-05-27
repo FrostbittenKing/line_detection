@@ -8,7 +8,8 @@ module UI
     class VisualizerHelper
 
         def self.draw_lines(imageMat, linedata, color = CvScalar.new(0,0,255))
-            linedata.each { |line| imageMat.line! line[:start_point], line[:end_point], :thickness => 2, :line_type => 8, :color => color }
+            linedata.each { |line| imageMat.line! line[:start_point], line[:end_point], :thickness => 2, :line_type => 8, :color => color
+            }
             return imageMat
         end
 
@@ -35,21 +36,24 @@ module UI
             end
         end
 
-
     end
+
     class ImageModeLines
         require 'find'
         require 'line_saver'
         include HoughTransform
 
         attr_accessor :image, :window_name, :window, :algorithm, :canny_threshold1,
-        :canny_threshold2, :bw_image, :canny_image, :hl_votes, :min_length, :image_file_name
+        :canny_threshold2, :bw_image, :canny_image, :hl_votes, :min_length, :image_file_name,
+        :horizon_picture,
+        :img_file_name #this is a little stupid, this is the variable for the lines
         # @args:
         # window_name: name of the displayed opencv window
         # @type OpenCV::CvMat image: image to display
         def initialize(window_name, image_file_name,mode = :detector_mode)
             @window_name = window_name
             @window = GUI::Window.new(@window_name)
+            @image_file_name = image_file_name
 
             if(mode == :detector_mode)
                 detector_mode_init image_file_name
@@ -60,7 +64,7 @@ module UI
 
         def restore_mode_init(lines_file_name)
             lines_data = LineSaver.instance.restore_lines(lines_file_name)
-            img_file_name = lines_file_name.slice(/.*\.jpg/)
+            self.img_file_name = lines_file_name.slice(/.*\.jpg/)
 
             complete_image_path = ""
             Find.find('./') do |path|
@@ -71,33 +75,30 @@ module UI
 
             @image = CvMat::load complete_image_path, CV_LOAD_IMAGE_COLOR
             drawn_lines = VisualizerHelper.draw_lines(@image,lines_data)
-            p VisualizerHelper.find_horizon(lines_data)
+            VisualizerHelper.find_horizon(lines_data)
             #drawn_lines = image_push_lines(@image, lines_data)
 
-            picture = VisualizerHelper.mark_horizon(@image,lines_data)
+            self.horizon_picture = VisualizerHelper.mark_horizon(@image,lines_data)
             #if not nil, horizon was found
-            if (picture)
-                @window.show picture
+            if (horizon_picture)
+                @window.show horizon_picture
             else
                 #show without horizon
                 @window.show drawn_lines
-            end
-
-            while key = GUI::wait_key
-                case key.chr
-                when "s"
-                    output_name = File.basename(img_file_name,File.extname(img_file_name)) + "_horizon" + File.extname(img_file_name)
-                    if picture
-                        picture.save(output_name)
-                    else
-                        draw_lines.save(output_name)
-                    end
-                end
             end
             #TODO:
             # read original image(find recursively, since we don't extract the exact path from the file)
             # paint lines in original image
             # show image
+        end
+
+        def save_horizon_image
+            output_name = File.basename(img_file_name,File.extname(img_file_name)) + "_horizon" + File.extname(img_file_name)
+            if horizon_picture
+                horizon_picture.save(output_name)
+            else
+                draw_lines.save(output_name)
+            end
         end
 
         def detector_mode_init(image_file_name)
@@ -126,16 +127,15 @@ module UI
             end
 
             window.show @canny_image
+        end
 
+        def output_canny_image_detection_mode
+            canny_image.save(File.basename(image_file_name, File.extname(image_file_name)) + Time.now.to_s + File.extname(image_file_name))
+        end
 
-            while key = GUI::wait_key
-                case key.chr
-                when "s"
-                    LineSaver.instance.store_lines(File.basename(image_file_name), @lines_array)
-                when "o"
-                    canny_image.save(File.basename(image_file_name, File.extname(image_file_name)) + Time.now.to_s + File.extname(image_file_name))
-                end
-            end
+        def save_image_detection_mode
+            p image_file_name
+            LineSaver.instance.store_lines(File.basename(image_file_name), @lines_array)
         end
 
         def max_trackbar_action
@@ -190,4 +190,21 @@ module UI
 
         private :min_trackbar_action, :max_trackbar_action, :hough_trackbar_action, :probabilistic_trackbar_action
     end
+
+    class ImageModeCircles < ImageModeLines
+        require 'bulls_eye'
+
+        def show_bullseye_vector
+            BullsEye.instance.bulls_eye_by_lines canny_image, @lines_array
+        end
+
+        def show_bullseye_circles
+
+            circles = BullsEye.instance.find_bulls_eye_circle image
+            circles.each { |circle|
+                self.image.circle! circle.center, circle.radius, :color => CvColor::Blue, :thickness => 3}
+            window.show image
+        end
+    end
+
 end

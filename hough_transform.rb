@@ -24,9 +24,9 @@ module HoughTransform
                 b = Math.sin(current_theta)
                 x0 = a*current_rho
                 y0 = b*current_rho
+
                 pt1 = CvPoint.new((x0 + 2000*(-b)).round, (y0 + 2000*(a)).round)
                 pt2 = CvPoint.new((x0 - 2000*(-b)).round, (y0 - 2000*(a)).round)
-
                 # store points
 
                 @lines_array << { :start_point => pt1, :end_point => pt2 }
