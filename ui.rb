@@ -13,12 +13,21 @@ module UI
             return imageMat
         end
 
+        def self.draw_circles(imageMat, points, radius = 5, color = CvScalar.new(255,255,0))
+            points.each { |point| imageMat.circle! point, radius, :thickness => 1, :line_type => 8, :color => color
+            }
+            return imageMat
+        end
+
         def self.find_horizon(linedata)
             linedata.each do |line|
                 start_point = line[:start_point]
                 end_point = line[:end_point]
 
                 x_distance = (start_point.x - end_point.x).abs
+                # workaround for vertical lines
+                return if x_distance == 0
+
                 y_distance = (start_point.y - end_point.y).abs
 
                 angle = y_distance.to_f != 0 ? Math.atan(x_distance.to_f/y_distance.to_f) * 180 / Math::PI : 0
@@ -138,6 +147,11 @@ module UI
             LineSaver.instance.store_lines(File.basename(image_file_name), @lines_array)
         end
 
+        def toggle_debug_info
+            canny_image.put_text!("rofl",CvPoint.new(600,500), CvFont.new(:simplex),CvScalar.new(0,0,255) )
+            window.show canny_image
+        end
+
         def max_trackbar_action
             proc { |v|
                 self.canny_threshold2 = v
@@ -195,14 +209,20 @@ module UI
         require 'bulls_eye'
 
         def show_bullseye_vector
-            BullsEye.instance.bulls_eye_by_lines canny_image, @lines_array
+            #p @lines_array
+            bulls_eyes = BullsEye.instance.bulls_eye_by_lines canny_image, @lines_array
+            VisualizerHelper.draw_circles image, bulls_eyes
+            window.show image
         end
 
         def show_bullseye_circles
 
             circles = BullsEye.instance.find_bulls_eye_circle image
             circles.each { |circle|
-                self.image.circle! circle.center, circle.radius, :color => CvColor::Blue, :thickness => 3}
+                self.image.circle! circle.center, circle.radius, :color => CvColor::Blue, :thickness => 3
+                # mark center
+                VisualizerHelper.draw_circles image, [circle.center]
+            }
             window.show image
         end
     end

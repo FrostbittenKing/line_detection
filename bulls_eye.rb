@@ -3,6 +3,7 @@ class BullsEye
     include Singleton
 
     def bulls_eye_by_lines(image, lines)
+        bullsEyePositions = []
         l2start = 1
         l2pos = 1
         lines.each_with_index do |l1,index|
@@ -11,10 +12,12 @@ class BullsEye
                 print "#{index} #{l2pos} \n"
                 if (intersection = intersectSegments(l1[:start_point], l1[:end_point], lines[l2pos][:start_point], lines[l2pos][:end_point]))
                    # p intersection
+                    bullsEyePositions << intersection
                 end
             end
             l2start +=1
         end
+        return bullsEyePositions
     end
 
     def find_bulls_eye_circle(image)
@@ -36,6 +39,6 @@ class BullsEye
 
         return nil if (ua < 0 || ua > 1 || ub < 0 || ub > 1)
 
-        p CvPoint.new(x3 + (x4 - x3)*ua, y1 + (y2 -y1)*ua)
+        return CvPoint.new(x3 + (x4 - x3)*ua, y1 + (y2 -y1)*ua)
     end
 end

@@ -53,6 +53,11 @@ if File.exists?(ARGV[0])
             when "o"
                 window.output_canny_image_detection_mode
             #    canny_image.save(File.basename(image_file_name, File.extname(image_file_name)) + Time.now.to_s + File.extname(image_file_name))
+
+            when "i"
+                # toggle debug info
+                p "toggle info"
+                window.toggle_debug_info
             end
         end
     else

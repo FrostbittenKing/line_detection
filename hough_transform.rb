@@ -17,6 +17,8 @@ module HoughTransform
             }
         elsif (algorithm == CV_HOUGH_STANDARD)
             lines_output = image.hough_lines algorithm, rho, theta, threshold
+
+            height,width = image.dims
             lines_output.each_with_index { |current_line,index|
                 current_rho = current_line[0]
                 current_theta = current_line[1]
@@ -25,10 +27,16 @@ module HoughTransform
                 x0 = a*current_rho
                 y0 = b*current_rho
 
+
+              #  if (x0 < y0)
+              #      pt1 = CvPoint.new(0, y0 + a/b * x0)
+              #  else
+              #      pt1 = CvPoint.new()
+              #  end
                 pt1 = CvPoint.new((x0 + 2000*(-b)).round, (y0 + 2000*(a)).round)
                 pt2 = CvPoint.new((x0 - 2000*(-b)).round, (y0 - 2000*(a)).round)
                 # store points
-
+                #p "#{a/b} #{x0} #{y0}"
                 @lines_array << { :start_point => pt1, :end_point => pt2 }
 
                 #color_image.line! pt1, pt2, :thickness => 2, :line_type => 8, :color => CvScalar.new(0,0,255)

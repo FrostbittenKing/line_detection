@@ -13,7 +13,8 @@ include OpenCV
 
 def usage
     print "ruby houghcircles.rb <image file name> \n"
-    print "s: store image with marked lines and circles"
+    print "p: show bullseye by line intersection"
+    print "b: show bullseye by circle center"
     exit 0
 end
 
@@ -45,4 +46,3 @@ else
      print "File or directory not found\n"
     exit 0
 end
-
