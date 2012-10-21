@@ -1,0 +1,10 @@
+How to build/run:
+-- Tested with ruby 1.9.3p194
+1) install opencv via packagemanager or manually
+2) ruby manually or via. rvm(ruby version manager - preferred method)
+3) install ruby gems and bundler
+4) install gems needed to run program with command: bundle install
+   this will install the needed gem (opencv) listed in the Gemfile
+5) run houghlines.rb/houghcircles.rb with: ruby houghlines.rb <image | houghlines file> <0=normal houghlines algorithm| 1=probabilistic houghlines mode>
+   detailed help: run houghlines/houghcircles without arguments
+
