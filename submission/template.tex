@@ -1,0 +1,81 @@
+\documentclass[11pt,a4paper]{article}
+% packages
+\input{./configuration/config}
+% macros
+\input{./configuration/macros}
+% titlepage macros
+\input{./configuration/titlepageMacros}
+\begin{document}  
+% title Page
+\input{./titlePage/titlepageTemplate}
+
+\newpage
+% \setcounter{tocdepth}{1}
+\tableofcontents
+\thispagestyle{empty}
+\clearpage
+\pagenumbering{arabic}
+\section{Houghlines}
+
+\subsection{hough lines storage File Format}
+To store detected lines, we use json :).
+Hough lines are stored line based in the following format: 
+\\
+\{\\
+``start\_point'': 
+\{``x'':
+\textless start x\textgreater, ``y'':\textless start y\textgreater\}, \\
+``end\_point'': 
+\{``x'':
+\textless end x\textgreater, ``y'':\textless end y\textgreater\}
+\\
+\}
+
+\subsection{road images detected lines}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{road_A_canny}
+  \caption{road A canny}
+  \label{fig:canny_A}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.6\textwidth]{road_A_horizon}
+  \caption{road A final}
+  \label{fig:roadA}
+\end{figure}
+
+\subsubsection{road B horizon detection}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{road_B_canny}
+  \caption{road B canny}
+  \label{fig:canny_B}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{road_B_horizon}
+  \caption{road B with horizon}
+  \label{fig:B_horizon}
+\end{figure}
+
+\section{houghcircles}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\textwidth]{bullseye_bullseye}
+  \caption{bullseye detection via line intersection and circle detection}
+  \label{fig:bullseye}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.72\textwidth]{bullseye_partial_bullseye}
+  \caption{partial bullseye detection}
+  \label{fig:partial_bullseye}
+\end{figure}
+\end{document}

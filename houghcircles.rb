@@ -13,8 +13,9 @@ include OpenCV
 
 def usage
     print "ruby houghcircles.rb <image file name> \n"
-    print "p: show bullseye by line intersection"
-    print "b: show bullseye by circle center"
+    print "p: show bullseye by line intersection\n"
+    print "b: show bullseye by circle center\n"
+    print "s: save image after showing bullseye by intersection and circlecenter\n"
     exit 0
 end
 
@@ -39,6 +40,9 @@ if File.exists?(ARGV[0])
 
             when "b"
                 window.show_bullseye_circles
+
+            when "s"
+                window.save_bullseye_circles
             end
         end
     end

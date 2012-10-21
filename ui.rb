@@ -54,7 +54,7 @@ module UI
 
         attr_accessor :image, :window_name, :window, :algorithm, :canny_threshold1,
         :canny_threshold2, :bw_image, :canny_image, :hl_votes, :min_length, :image_file_name,
-        :horizon_picture,
+        :horizon_picture,:drawn_lines,
         :img_file_name #this is a little stupid, this is the variable for the lines
         # @args:
         # window_name: name of the displayed opencv window
@@ -83,7 +83,7 @@ module UI
             end
 
             @image = CvMat::load complete_image_path, CV_LOAD_IMAGE_COLOR
-            drawn_lines = VisualizerHelper.draw_lines(@image,lines_data)
+            self.drawn_lines = VisualizerHelper.draw_lines(@image,lines_data)
             VisualizerHelper.find_horizon(lines_data)
             #drawn_lines = image_push_lines(@image, lines_data)
 
@@ -106,7 +106,7 @@ module UI
             if horizon_picture
                 horizon_picture.save(output_name)
             else
-                draw_lines.save(output_name)
+                drawn_lines.save(output_name)
             end
         end
 
@@ -225,6 +225,11 @@ module UI
             }
             window.show image
         end
-    end
 
+        def save_bullseye_circles
+            output_name = File.basename(@image_file_name,File.extname(@image_file_name)) + "_bullseye" + File.extname(@image_file_name)
+                image.save(output_name)
+        end
+    end
+    
 end
